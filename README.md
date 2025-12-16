@@ -304,6 +304,7 @@ For issues or questions:
 
 ---
 
-**Version**: 1.0  
+**Version**: 1.0
+**Author**: M. Cole
 **Last Updated**: December 2024  
 **Created for**: Quiz Screenshot Workflow Automation
