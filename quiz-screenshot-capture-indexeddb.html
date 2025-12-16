@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Screenshot Capture Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .progress-container {
+            margin-top: 15px;
+        }
+
+        .progress-text {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: #4ade80;
+            height: 100%;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 25px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #videoPlayer {
+            width: 100%;
+            display: block;
+        }
+
+        .video-placeholder {
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 1.2em;
+        }
+
+        .video-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #dc2626;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .capture-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .capture-btn {
+            padding: 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .capture-btn:hover {
+            border-color: #667eea;
+            background: #f8fafc;
+            transform: translateY(-2px);
+        }
+
+        .capture-btn-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .gallery-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .gallery-item-info {
+            padding: 12px;
+        }
+
+        .gallery-item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #1e293b;
+        }
+
+        .gallery-item-meta {
+            font-size: 0.85em;
+            color: #64748b;
+            margin-bottom: 3px;
+        }
+
+        .gallery-item-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .export-section {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .export-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 60vh;
+            display: block;
+            margin: 0 auto 20px;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .keyboard-shortcuts {
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .keyboard-shortcuts strong {
+            color: #92400e;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert.active {
+            display: flex;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+        }
+
+        .knowledge-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .knowledge-option {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .knowledge-option:hover {
+            border-color: #667eea;
+        }
+
+        .knowledge-option.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .timestamp-display {
+            font-size: 0.9em;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .autocomplete-container {
+            position: relative;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #667eea;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .autocomplete-list.active {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:hover {
+            background: #f8fafc;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Quiz Screenshot Capture Tool</h1>
+            <p>Capture, annotate, and export quiz visuals efficiently</p>
+            <div class="progress-container">
+                <div class="progress-text">
+                    <span id="captureCount">0</span> screenshots captured
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Column: Capture Section -->
+            <div>
+                <div class="section">
+                    <h2 class="section-title">🎬 Video Player</h2>
+                    
+                    <div class="keyboard-shortcuts">
+                        <strong>Keyboard Shortcuts:</strong> 
+                        <kbd>Space</kbd> Capture from video | 
+                        <kbd>Ctrl/Cmd + V</kbd> Paste from clipboard
+                    </div>
+
+                    <div id="alertContainer" class="alert">
+                        <span id="alertMessage"></span>
+                    </div>
+
+                    <div class="video-controls">
+                        <button class="btn btn-primary" onclick="loadVideo()">
+                            📁 Load Video
+                        </button>
+                        <button class="btn btn-secondary" onclick="captureFromVideo()" id="captureVideoBtn" disabled>
+                            📸 Capture Frame
+                        </button>
+                    </div>
+
+                    <div class="video-container" id="videoContainer">
+                        <div class="video-placeholder">
+                            No video loaded. Click "Load Video" to begin.
+                        </div>
+                    </div>
+
+                    <input type="file" id="videoFileInput" accept="video/*" class="hidden" onchange="handleVideoFile(this)">
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">🖼️ Other Capture Methods</h2>
+                    
+                    <div class="capture-methods">
+                        <div class="capture-btn" onclick="captureScreen()">
+                            <div class="capture-btn-icon">🖥️</div>
+                            <strong>Screen Capture</strong>
+                            <div style="font-size: 0.9em; margin-top: 5px;">Capture entire screen</div>
+                        </div>
+                        
+                        <div class="capture-btn" onclick="pasteFromClipboard()">
+                            <div class="capture-btn-icon">📋</div>
+                            <strong>Paste Image</strong>
+                            <div style="font-size: 0.9em; margin-top: 5px;">Ctrl/Cmd + V</div>
+                        </div>
+                        
+                        <div class="capture-btn" onclick="uploadImage()">
+                            <div class="capture-btn-icon">📂</div>
+                            <strong>Upload File</strong>
+                            <div style="font-size: 0.9em; margin-top: 5px;">Browse & select</div>
+                        </div>
+                    </div>
+
+                    <input type="file" id="imageFileInput" accept="image/*" class="hidden" onchange="handleImageFile(this)">
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">✏️ Image Metadata</h2>
+                    
+                    <div id="previewContainer" style="display: none; margin-bottom: 20px;">
+                        <img id="previewImage" style="max-width: 100%; border-radius: 8px; border: 2px solid #e2e8f0;">
+                    </div>
+
+                    <form id="metadataForm" onsubmit="saveScreenshot(event)">
+                        <div class="form-group autocomplete-container">
+                            <label class="form-label">Name *</label>
+                            <input type="text" class="form-input" id="nameInput" required 
+                                   oninput="handleAutocomplete(this, 'names')" 
+                                   onfocus="handleAutocomplete(this, 'names')">
+                            <div class="autocomplete-list" id="namesAutocomplete"></div>
+                        </div>
+
+                        <div class="form-group autocomplete-container">
+                            <label class="form-label">Category *</label>
+                            <input type="text" class="form-input" id="categoryInput" required
+                                   oninput="handleAutocomplete(this, 'categories')"
+                                   onfocus="handleAutocomplete(this, 'categories')">
+                            <div class="autocomplete-list" id="categoriesAutocomplete"></div>
+                        </div>
+
+                        <div class="form-group autocomplete-container">
+                            <label class="form-label">Subject *</label>
+                            <input type="text" class="form-input" id="subjectInput" required
+                                   oninput="handleAutocomplete(this, 'subjects')"
+                                   onfocus="handleAutocomplete(this, 'subjects')">
+                            <div class="autocomplete-list" id="subjectsAutocomplete"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-textarea" id="descriptionInput" 
+                                      placeholder="Add any additional information about this image..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Knowledge Level</label>
+                            <div class="knowledge-selector">
+                                <div class="knowledge-option active" onclick="selectKnowledge(-1)" data-value="-1">
+                                    <div style="font-size: 1.5em;">❓</div>
+                                    <div style="font-size: 0.85em; margin-top: 5px;">Unknown</div>
+                                </div>
+                                <div class="knowledge-option" onclick="selectKnowledge(0)" data-value="0">
+                                    <div style="font-size: 1.5em;">❌</div>
+                                    <div style="font-size: 0.85em; margin-top: 5px;">Don't Know</div>
+                                </div>
+                                <div class="knowledge-option" onclick="selectKnowledge(1)" data-value="1">
+                                    <div style="font-size: 1.5em;">✅</div>
+                                    <div style="font-size: 0.85em; margin-top: 5px;">Know</div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="knowledgeInput" value="-1">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Image Format</label>
+                            <select class="form-select" id="formatInput">
+                                <option value="png" selected>PNG (Best Quality)</option>
+                                <option value="jpeg">JPEG (Smaller Size)</option>
+                                <option value="webp">WEBP (Modern Format)</option>
+                                <option value="gif">GIF (Animation Support)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="timestampGroup" style="display: none;">
+                            <label class="form-label">Video Timestamp</label>
+                            <div class="timestamp-display" id="timestampDisplay"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-secondary" id="saveBtn" disabled style="width: 100%;">
+                            💾 Save Screenshot
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: Gallery & Export -->
+            <div>
+                <div class="section">
+                    <h2 class="section-title">📚 Captured Screenshots</h2>
+                    
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalCount">0</div>
+                            <div class="stat-label">Total Captures</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="subjectCount">0</div>
+                            <div class="stat-label">Subjects</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="categoryCount">0</div>
+                            <div class="stat-label">Categories</div>
+                        </div>
+                    </div>
+
+                    <div id="galleryContainer" class="gallery">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📷</div>
+                            <p>No screenshots captured yet.<br>Use the capture methods to get started!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-section">
+                    <h3 style="margin-bottom: 15px;">📤 Export Options</h3>
+                    
+                    <div class="export-buttons">
+                        <button class="btn btn-primary" onclick="exportCSV()" id="exportCSVBtn" disabled>
+                            📊 Export CSV
+                        </button>
+                        <button class="btn btn-primary" onclick="exportStandardJSON()" id="exportJSONBtn" disabled>
+                            📄 Export Standard JSON
+                        </button>
+                        <button class="btn btn-primary" onclick="exportAppJSON()" id="exportAppJSONBtn" disabled>
+                            🔗 Export App JSON
+                        </button>
+                        <button class="btn btn-primary" onclick="exportAllAsZip()" id="exportZipBtn" disabled>
+                            📦 Export All (ZIP)
+                        </button>
+                        <button class="btn btn-danger" onclick="clearAll()">
+                            🗑️ Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for image preview -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2>Image Preview</h2>
+            <img class="modal-image" id="modalImage">
+            <div id="modalInfo"></div>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        // Global State
+        let screenshots = [];
+        let currentImageData = null;
+        let autocompleteData = {
+            names: [],
+            categories: [],
+            subjects: []
+        };
+        let db = null;
+
+        // IndexedDB Setup
+        function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('QuizScreenshotDB', 1);
+                
+                request.onerror = () => {
+                    console.error('IndexedDB error:', request.error);
+                    reject(request.error);
+                };
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('IndexedDB initialized successfully');
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    
+                    // Create object store for screenshots
+                    if (!db.objectStoreNames.contains('screenshots')) {
+                        db.createObjectStore('screenshots', { keyPath: 'id' });
+                    }
+                    
+                    // Create object store for autocomplete data
+                    if (!db.objectStoreNames.contains('autocomplete')) {
+                        db.createObjectStore('autocomplete', { keyPath: 'key' });
+                    }
+                };
+            });
+        }
+
+        // Save to IndexedDB
+        async function saveToIndexedDB() {
+            if (!db) {
+                console.error('Database not initialized');
+                return;
+            }
+            
+            try {
+                const transaction = db.transaction(['screenshots', 'autocomplete'], 'readwrite');
+                const screenshotStore = transaction.objectStore('screenshots');
+                const autocompleteStore = transaction.objectStore('autocomplete');
+                
+                // Clear existing data
+                await screenshotStore.clear();
+                
+                // Save all screenshots
+                for (const screenshot of screenshots) {
+                    await screenshotStore.put(screenshot);
+                }
+                
+                // Save autocomplete data
+                await autocompleteStore.put({ key: 'data', value: autocompleteData });
+                
+                return new Promise((resolve, reject) => {
+                    transaction.oncomplete = () => resolve();
+                    transaction.onerror = () => reject(transaction.error);
+                });
+            } catch (error) {
+                console.error('Error saving to IndexedDB:', error);
+            }
+        }
+
+        // Load from IndexedDB
+        async function loadFromIndexedDB() {
+            if (!db) {
+                console.error('Database not initialized');
+                return;
+            }
+            
+            try {
+                const transaction = db.transaction(['screenshots', 'autocomplete'], 'readonly');
+                const screenshotStore = transaction.objectStore('screenshots');
+                const autocompleteStore = transaction.objectStore('autocomplete');
+                
+                // Load screenshots
+                const screenshotsRequest = screenshotStore.getAll();
+                const autocompleteRequest = autocompleteStore.get('data');
+                
+                return new Promise((resolve, reject) => {
+                    transaction.oncomplete = () => {
+                        screenshots = screenshotsRequest.result || [];
+                        const autocompleteResult = autocompleteRequest.result;
+                        if (autocompleteResult && autocompleteResult.value) {
+                            autocompleteData = autocompleteResult.value;
+                        } else {
+                            autocompleteData = { names: [], categories: [], subjects: [] };
+                        }
+                        console.log('Loaded', screenshots.length, 'screenshots from IndexedDB');
+                        resolve();
+                    };
+                    transaction.onerror = () => reject(transaction.error);
+                });
+            } catch (error) {
+                console.error('Error loading from IndexedDB:', error);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await initIndexedDB();
+                await loadFromIndexedDB();
+                updateUI();
+                setupEventListeners();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showAlert('Error initializing database. Some features may not work.', 'error');
+            }
+        });
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.code === 'Space' && !e.target.matches('input, textarea, select')) {
+                    e.preventDefault();
+                    const video = document.getElementById('videoPlayer');
+                    if (video && !video.paused) {
+                        captureFromVideo();
+                    }
+                }
+            });
+
+            // Paste handler
+            document.addEventListener('paste', function(e) {
+                const items = e.clipboardData?.items;
+                if (!items) return;
+
+                for (let item of items) {
+                    if (item.type.startsWith('image/')) {
+                        e.preventDefault();
+                        const blob = item.getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            currentImageData = event.target.result;
+                            showPreview(currentImageData);
+                            showAlert('Image pasted from clipboard!', 'success');
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+                }
+            });
+
+            // Click outside autocomplete to close
+            document.addEventListener('click', function(e) {
+                if (!e.target.matches('.form-input')) {
+                    document.querySelectorAll('.autocomplete-list').forEach(list => {
+                        list.classList.remove('active');
+                    });
+                }
+            });
+        }
+
+        // Load Video
+        function loadVideo() {
+            document.getElementById('videoFileInput').click();
+        }
+
+        function handleVideoFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const videoContainer = document.getElementById('videoContainer');
+            const url = URL.createObjectURL(file);
+            
+            videoContainer.innerHTML = `<video id="videoPlayer" controls></video>`;
+            const video = document.getElementById('videoPlayer');
+            video.src = url;
+            
+            document.getElementById('captureVideoBtn').disabled = false;
+            showAlert('Video loaded successfully!', 'success');
+        }
+
+        // Capture from Video
+        function captureFromVideo() {
+            const video = document.getElementById('videoPlayer');
+            if (!video) {
+                showAlert('Please load a video first!', 'error');
+                return;
+            }
+
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            currentImageData = canvas.toDataURL('image/png');
+            showPreview(currentImageData);
+            
+            // Set timestamp
+            const timestamp = formatTimestamp(video.currentTime);
+            document.getElementById('timestampDisplay').textContent = timestamp;
+            document.getElementById('timestampGroup').style.display = 'block';
+            
+            showAlert('Frame captured! Fill in the metadata and save.', 'success');
+        }
+
+        // Capture Screen
+        async function captureScreen() {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { mediaSource: 'screen' }
+                });
+                
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+                
+                video.onloadedmetadata = function() {
+                    const canvas = document.getElementById('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0);
+                    
+                    currentImageData = canvas.toDataURL('image/png');
+                    showPreview(currentImageData);
+                    
+                    stream.getTracks().forEach(track => track.stop());
+                    showAlert('Screen captured! Fill in the metadata and save.', 'success');
+                };
+            } catch (err) {
+                showAlert('Screen capture cancelled or not supported.', 'error');
+            }
+        }
+
+        // Paste from Clipboard (manual trigger)
+        function pasteFromClipboard() {
+            showAlert('Press Ctrl/Cmd + V to paste an image from clipboard', 'info');
+        }
+
+        // Upload Image
+        function uploadImage() {
+            document.getElementById('imageFileInput').click();
+        }
+
+        function handleImageFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                currentImageData = event.target.result;
+                showPreview(currentImageData);
+                showAlert('Image loaded! Fill in the metadata and save.', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Show Preview
+        function showPreview(imageData) {
+            document.getElementById('previewImage').src = imageData;
+            document.getElementById('previewContainer').style.display = 'block';
+            document.getElementById('saveBtn').disabled = false;
+        }
+
+        // Knowledge Selector
+        function selectKnowledge(value) {
+            document.querySelectorAll('.knowledge-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            
+            const selected = document.querySelector(`.knowledge-option[data-value="${value}"]`);
+            if (selected) {
+                selected.classList.add('active');
+                document.getElementById('knowledgeInput').value = value;
+            }
+        }
+
+        // Autocomplete
+        function handleAutocomplete(input, type) {
+            const value = input.value.toLowerCase();
+            const autocompleteList = document.getElementById(`${type}Autocomplete`);
+            
+            if (value.length === 0) {
+                autocompleteList.classList.remove('active');
+                return;
+            }
+
+            const matches = autocompleteData[type]
+                .filter(item => item.toLowerCase().includes(value))
+                .slice(0, 5);
+
+            if (matches.length === 0) {
+                autocompleteList.classList.remove('active');
+                return;
+            }
+
+            autocompleteList.innerHTML = matches
+                .map(item => `<div class="autocomplete-item" onclick="selectAutocomplete('${type}', '${escapeHtml(item)}')">${escapeHtml(item)}</div>`)
+                .join('');
+            
+            autocompleteList.classList.add('active');
+        }
+
+        function selectAutocomplete(type, value) {
+            const inputId = type === 'names' ? 'nameInput' : type === 'categories' ? 'categoryInput' : 'subjectInput';
+            document.getElementById(inputId).value = value;
+            document.getElementById(`${type}Autocomplete`).classList.remove('active');
+        }
+
+        // Save Screenshot
+        function saveScreenshot(event) {
+            event.preventDefault();
+            
+            if (!currentImageData) {
+                showAlert('Please capture an image first!', 'error');
+                return;
+            }
+
+            const name = document.getElementById('nameInput').value;
+            const category = document.getElementById('categoryInput').value;
+            const subject = document.getElementById('subjectInput').value;
+            const description = document.getElementById('descriptionInput').value;
+            const knowledge = parseInt(document.getElementById('knowledgeInput').value);
+            const format = document.getElementById('formatInput').value;
+            const timestamp = document.getElementById('timestampDisplay').textContent;
+
+            // Convert image to selected format
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = async function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                let mimeType = 'image/png';
+                if (format === 'jpeg') mimeType = 'image/jpeg';
+                else if (format === 'webp') mimeType = 'image/webp';
+                else if (format === 'gif') mimeType = 'image/gif';
+                
+                const convertedImageData = canvas.toDataURL(mimeType);
+                
+                const screenshot = {
+                    id: generateId(),
+                    name,
+                    category,
+                    subject,
+                    description,
+                    knowledge,
+                    format,
+                    timestamp,
+                    imageData: convertedImageData,
+                    capturedAt: new Date().toISOString(),
+                    size: calculateSize(convertedImageData)
+                };
+
+                screenshots.push(screenshot);
+                
+                // Update autocomplete data
+                if (!autocompleteData.names.includes(name)) {
+                    autocompleteData.names.push(name);
+                }
+                if (!autocompleteData.categories.includes(category)) {
+                    autocompleteData.categories.push(category);
+                }
+                if (!autocompleteData.subjects.includes(subject)) {
+                    autocompleteData.subjects.push(subject);
+                }
+                
+                await saveToIndexedDB();
+                updateUI();
+                resetForm();
+                
+                showAlert(`Screenshot "${name}" saved successfully!`, 'success');
+            };
+            
+            img.src = currentImageData;
+        }
+
+        // Reset Form
+        function resetForm() {
+            document.getElementById('metadataForm').reset();
+            document.getElementById('previewContainer').style.display = 'none';
+            document.getElementById('timestampGroup').style.display = 'none';
+            document.getElementById('saveBtn').disabled = true;
+            currentImageData = null;
+            selectKnowledge(-1);
+        }
+
+        // Update UI
+        function updateUI() {
+            updateStats();
+            updateGallery();
+            updateProgress();
+            updateExportButtons();
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = screenshots.length;
+            document.getElementById('captureCount').textContent = screenshots.length;
+            
+            const uniqueSubjects = new Set(screenshots.map(s => s.subject)).size;
+            const uniqueCategories = new Set(screenshots.map(s => s.category)).size;
+            
+            document.getElementById('subjectCount').textContent = uniqueSubjects;
+            document.getElementById('categoryCount').textContent = uniqueCategories;
+        }
+
+        function updateGallery() {
+            const container = document.getElementById('galleryContainer');
+            
+            if (screenshots.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📷</div>
+                        <p>No screenshots captured yet.<br>Use the capture methods to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = screenshots.map((screenshot, index) => `
+                <div class="gallery-item">
+                    <img src="${screenshot.imageData}" alt="${escapeHtml(screenshot.name)}">
+                    <div class="gallery-item-info">
+                        <div class="gallery-item-name">${escapeHtml(screenshot.name)}</div>
+                        <div class="gallery-item-meta">${escapeHtml(screenshot.category)}</div>
+                        <div class="gallery-item-meta">${escapeHtml(screenshot.subject)}</div>
+                        <div class="gallery-item-meta">${screenshot.size}</div>
+                        ${screenshot.timestamp ? `<div class="gallery-item-meta">⏱️ ${screenshot.timestamp}</div>` : ''}
+                        <div class="gallery-item-actions">
+                            <button class="btn btn-small btn-primary" onclick="viewScreenshot(${index})">👁️ View</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteScreenshot(${index})">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateProgress() {
+            const percentage = screenshots.length > 0 ? Math.min((screenshots.length / 9) * 100, 100) : 0;
+            document.getElementById('progressFill').style.width = percentage + '%';
+        }
+
+        function updateExportButtons() {
+            const hasData = screenshots.length > 0;
+            document.getElementById('exportCSVBtn').disabled = !hasData;
+            document.getElementById('exportJSONBtn').disabled = !hasData;
+            document.getElementById('exportAppJSONBtn').disabled = !hasData;
+            document.getElementById('exportZipBtn').disabled = !hasData;
+        }
+
+        // View Screenshot
+        function viewScreenshot(index) {
+            const screenshot = screenshots[index];
+            document.getElementById('modalImage').src = screenshot.imageData;
+            document.getElementById('modalInfo').innerHTML = `
+                <p><strong>Name:</strong> ${escapeHtml(screenshot.name)}</p>
+                <p><strong>Category:</strong> ${escapeHtml(screenshot.category)}</p>
+                <p><strong>Subject:</strong> ${escapeHtml(screenshot.subject)}</p>
+                ${screenshot.description ? `<p><strong>Description:</strong> ${escapeHtml(screenshot.description)}</p>` : ''}
+                <p><strong>Knowledge:</strong> ${getKnowledgeLabel(screenshot.knowledge)}</p>
+                <p><strong>Format:</strong> ${screenshot.format.toUpperCase()}</p>
+                ${screenshot.timestamp ? `<p><strong>Timestamp:</strong> ${screenshot.timestamp}</p>` : ''}
+                <p><strong>Size:</strong> ${screenshot.size}</p>
+            `;
+            document.getElementById('previewModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('previewModal').classList.remove('active');
+        }
+
+        // Delete Screenshot
+        async function deleteScreenshot(index) {
+            if (confirm('Are you sure you want to delete this screenshot?')) {
+                screenshots.splice(index, 1);
+                await saveToIndexedDB();
+                updateUI();
+                showAlert('Screenshot deleted.', 'info');
+            }
+        }
+
+        // Clear All
+        async function clearAll() {
+            if (confirm('Are you sure you want to delete all screenshots? This cannot be undone!')) {
+                screenshots = [];
+                autocompleteData = { names: [], categories: [], subjects: [] };
+                
+                // Clear IndexedDB
+                if (db) {
+                    const transaction = db.transaction(['screenshots', 'autocomplete'], 'readwrite');
+                    await transaction.objectStore('screenshots').clear();
+                    await transaction.objectStore('autocomplete').clear();
+                }
+                
+                updateUI();
+                showAlert('All data cleared.', 'info');
+            }
+        }
+
+        // Export CSV
+        function exportCSV() {
+            const headers = ['ID', 'Name', 'Category', 'Subject', 'Description', 'Knowledge', 'Format', 'Timestamp', 'Size', 'Captured At'];
+            const rows = screenshots.map(s => [
+                s.id,
+                s.name,
+                s.category,
+                s.subject,
+                s.description,
+                s.knowledge,
+                s.format,
+                s.timestamp || '',
+                s.size,
+                s.capturedAt
+            ]);
+
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            downloadFile(csv, 'quiz-screenshots.csv', 'text/csv');
+            showAlert('CSV exported successfully!', 'success');
+        }
+
+        // Export Standard JSON
+        function exportStandardJSON() {
+            const json = JSON.stringify(screenshots, null, 2);
+            downloadFile(json, 'quiz-screenshots.json', 'application/json');
+            showAlert('Standard JSON exported successfully!', 'success');
+        }
+
+        // Export App JSON
+        function exportAppJSON() {
+            const appData = screenshots.map(s => ({
+                id: s.id,
+                name: s.name,
+                description: s.description,
+                knowledge: s.knowledge,
+                src: s.imageData,
+                size: s.size
+            }));
+
+            const json = JSON.stringify(appData, null, 2);
+            downloadFile(json, 'quiz-screenshots-app.json', 'application/json');
+            showAlert('App JSON exported successfully!', 'success');
+        }
+
+        // Export All as ZIP
+        async function exportAllAsZip() {
+            const zip = new JSZip();
+            
+            // Add CSV
+            const headers = ['ID', 'Name', 'Category', 'Subject', 'Description', 'Knowledge', 'Format', 'Timestamp', 'Size', 'Captured At'];
+            const rows = screenshots.map(s => [
+                s.id,
+                s.name,
+                s.category,
+                s.subject,
+                s.description,
+                s.knowledge,
+                s.format,
+                s.timestamp || '',
+                s.size,
+                s.capturedAt
+            ]);
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+            zip.file('quiz-screenshots.csv', csv);
+            
+            // Add Standard JSON
+            zip.file('quiz-screenshots.json', JSON.stringify(screenshots, null, 2));
+            
+            // Add App JSON
+            const appData = screenshots.map(s => ({
+                id: s.id,
+                name: s.name,
+                description: s.description,
+                knowledge: s.knowledge,
+                src: s.imageData,
+                size: s.size
+            }));
+            zip.file('quiz-screenshots-app.json', JSON.stringify(appData, null, 2));
+            
+            // Add images
+            const imagesFolder = zip.folder('images');
+            screenshots.forEach((s, index) => {
+                const base64Data = s.imageData.split(',')[1];
+                imagesFolder.file(`${s.id}.${s.format}`, base64Data, { base64: true });
+            });
+            
+            // Generate and download
+            const content = await zip.generateAsync({ type: 'blob' });
+            downloadBlob(content, 'quiz-screenshots-export.zip');
+            showAlert('ZIP file exported successfully!', 'success');
+        }
+
+        // Utility Functions
+        function generateId() {
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(2, 9);
+            return `img-${timestamp}-${random}`;
+        }
+
+        function formatTimestamp(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function calculateSize(dataUrl) {
+            const base64 = dataUrl.split(',')[1];
+            const bytes = Math.ceil((base64.length * 3) / 4);
+            
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function getKnowledgeLabel(value) {
+            if (value === -1) return '❓ Unknown';
+            if (value === 0) return '❌ Don\'t Know';
+            if (value === 1) return '✅ Know';
+            return 'Unknown';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            downloadBlob(blob, filename);
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function showAlert(message, type = 'info') {
+            const alert = document.getElementById('alertContainer');
+            const alertMessage = document.getElementById('alertMessage');
+            
+            alert.className = `alert alert-${type} active`;
+            alertMessage.textContent = message;
+            
+            setTimeout(() => {
+                alert.classList.remove('active');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
