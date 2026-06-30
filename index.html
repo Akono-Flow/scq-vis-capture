@@ -564,6 +564,47 @@
       .edit-mode-indicator.active {
         display: block;
       }
+
+      .mode-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .mode-card {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .mode-card input {
+        margin-right: 8px;
+      }
+
+      .mode-card strong {
+        color: #1e293b;
+      }
+
+      .mode-card small {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        line-height: 1.35;
+      }
+
+      .mode-card.active {
+        border-color: #667eea;
+        background: #eef2ff;
+      }
+
+      .mode-only.hidden-mode {
+        display: none;
+      }
+
     </style>
   </head>
   <body>
@@ -686,6 +727,91 @@
             </div>
 
             <form id="metadataForm" onsubmit="saveScreenshot(event)">
+              <div class="form-group">
+                <label class="form-label">Capture Mode *</label>
+                <div class="mode-selector" id="modeSelector">
+                  <label class="mode-card active" id="competitionModeCard">
+                    <input
+                      type="radio"
+                      name="captureMode"
+                      value="competition"
+                      checked
+                      onchange="handleModeChange()"
+                    />
+                    <strong>🏆 Competition Mode</strong>
+                    <small>Use for visuals captured from recorded quiz matches.</small>
+                  </label>
+                  <label class="mode-card" id="trainingModeCard">
+                    <input
+                      type="radio"
+                      name="captureMode"
+                      value="training"
+                      onchange="handleModeChange()"
+                    />
+                    <strong>🎓 Training / Collection Mode</strong>
+                    <small>Use for building image collections such as footballers or cricketers.</small>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group mode-only" id="competitionSectionGroup">
+                <label class="form-label">Match Section *</label>
+                <select class="form-select" id="sectionInput">
+                  <option value="alternate" selected>Alternate</option>
+                  <option value="buzzer">Buzzer</option>
+                  <option value="minute">Minute</option>
+                  <option value="other">Other / Unspecified</option>
+                </select>
+              </div>
+
+              <div class="mode-only" id="competitionDetailsGroup">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                  <div class="form-group">
+                    <label class="form-label">Year</label>
+                    <input
+                      type="text"
+                      class="form-input"
+                      id="yearInput"
+                      placeholder="e.g. 2024"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Round</label>
+                    <input
+                      type="text"
+                      class="form-input"
+                      id="roundInput"
+                      placeholder="e.g. 2 or R02"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Match #</label>
+                    <input
+                      type="text"
+                      class="form-input"
+                      id="matchNumberInput"
+                      placeholder="e.g. 15"
+                    />
+                  </div>
+                </div>
+                <div style="font-size: 0.85em; color: #64748b; margin: -8px 0 18px;">
+                  Stored as metadata only. Image filenames remain based on the image name for GitHub Media Studio.
+                </div>
+              </div>
+
+              <div class="form-group autocomplete-container mode-only hidden-mode" id="trainingCollectionGroup">
+                <label class="form-label">Collection *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="collectionInput"
+                  placeholder="e.g. Footballers, Cricketers, Jamaican Heritage"
+                  oninput="handleAutocomplete(this, 'collections')"
+                  onfocus="handleAutocomplete(this, 'collections')"
+                />
+                <div class="autocomplete-list" id="collectionsAutocomplete"></div>
+              </div>
+
               <div class="form-group autocomplete-container">
                 <label class="form-label">Name *</label>
                 <input
@@ -700,12 +826,11 @@
               </div>
 
               <div class="form-group autocomplete-container">
-                <label class="form-label">Category *</label>
+                <label class="form-label" id="categoryLabel">Category </label>
                 <input
                   type="text"
                   class="form-input"
                   id="categoryInput"
-                  required
                   oninput="handleAutocomplete(this, 'categories')"
                   onfocus="handleAutocomplete(this, 'categories')"
                 />
@@ -716,12 +841,11 @@
               </div>
 
               <div class="form-group autocomplete-container">
-                <label class="form-label">Subject *</label>
+                <label class="form-label" id="subjectLabel">Subject </label>
                 <input
                   type="text"
                   class="form-input"
                   id="subjectInput"
-                  required
                   oninput="handleAutocomplete(this, 'subjects')"
                   onfocus="handleAutocomplete(this, 'subjects')"
                 />
@@ -776,7 +900,7 @@
                 <label class="form-label">Image Format</label>
                 <select class="form-select" id="formatInput">
                   <option value="jpeg" selected>JPEG (Smaller Size)</option>
-                  <option value="png" >PNG (Best Quality)</option>
+                  <option value="png">PNG (Best Quality)</option>
                   <option value="webp">WEBP (Modern Format)</option>
                   <option value="gif">GIF (Animation Support)</option>
                 </select>
@@ -829,6 +953,10 @@
                 <div class="stat-value" id="categoryCount">0</div>
                 <div class="stat-label">Categories</div>
               </div>
+              <div class="stat-card">
+                <div class="stat-value" id="sectionCollectionCount">0</div>
+                <div class="stat-label">Sections / Collections</div>
+              </div>
             </div>
 
             <div id="galleryContainer" class="gallery">
@@ -869,6 +997,14 @@
                 disabled
               >
                 🔗 Export App JSON
+              </button>
+              <button
+                class="btn btn-primary"
+                onclick="exportGitHubMediaSourceJSON()"
+                id="exportGitHubMediaSourceBtn"
+                disabled
+              >
+                🧩 Export GitHub Media Studio Source JSON
               </button>
               <button
                 class="btn btn-primary"
@@ -949,6 +1085,7 @@
         names: [],
         categories: [],
         subjects: [],
+        collections: [],
       };
       let db = null;
       let editMode = false;
@@ -1047,8 +1184,9 @@
               if (autocompleteResult && autocompleteResult.value) {
                 autocompleteData = autocompleteResult.value;
               } else {
-                autocompleteData = { names: [], categories: [], subjects: [] };
+                autocompleteData = getEmptyAutocompleteData();
               }
+              normalizeAutocompleteData();
               console.log(
                 "Loaded",
                 screenshots.length,
@@ -1068,6 +1206,9 @@
         try {
           await initIndexedDB();
           await loadFromIndexedDB();
+          screenshots = screenshots.map(normalizeScreenshot);
+          normalizeAutocompleteData();
+          handleModeChange();
           updateUI();
           setupEventListeners();
         } catch (error) {
@@ -1125,6 +1266,97 @@
         });
       }
 
+
+
+      function getEmptyAutocompleteData() {
+        return { names: [], categories: [], subjects: [], collections: [] };
+      }
+
+      function normalizeAutocompleteData() {
+        const empty = getEmptyAutocompleteData();
+        autocompleteData = { ...empty, ...(autocompleteData || {}) };
+      }
+
+      function normalizeScreenshot(item) {
+        return {
+          mode: item.mode || (item.collection ? "training" : "competition"),
+          section: item.section || "",
+          year: item.year || "",
+          round: item.round || "",
+          matchNumber: item.matchNumber || item.match || item.matchNo || "",
+          collection: item.collection || "",
+          description: item.description || "",
+          category: item.category || "",
+          subject: item.subject || "",
+          knowledge: Number.isInteger(item.knowledge) ? item.knowledge : parseInt(item.knowledge ?? -1, 10),
+          format: item.format || "jpeg",
+          timestamp: item.timestamp || "",
+          capturedAt: item.capturedAt || new Date().toISOString(),
+          size: item.size || (item.imageData ? calculateSize(item.imageData) : ""),
+          ...item,
+        };
+      }
+
+      function getCurrentMode() {
+        const selected = document.querySelector('input[name="captureMode"]:checked');
+        return selected ? selected.value : "competition";
+      }
+
+      function setCaptureMode(mode) {
+        const input = document.querySelector(`input[name="captureMode"][value="${mode}"]`);
+        if (input) input.checked = true;
+        handleModeChange();
+      }
+
+      function handleModeChange() {
+        const mode = getCurrentMode();
+        const competitionGroup = document.getElementById("competitionSectionGroup");
+        const trainingGroup = document.getElementById("trainingCollectionGroup");
+        const competitionDetailsGroup = document.getElementById("competitionDetailsGroup");
+        const competitionCard = document.getElementById("competitionModeCard");
+        const trainingCard = document.getElementById("trainingModeCard");
+        const subjectLabel = document.getElementById("subjectLabel");
+        const categoryLabel = document.getElementById("categoryLabel");
+
+        competitionGroup.classList.toggle("hidden-mode", mode !== "competition");
+        if (competitionDetailsGroup) {
+          competitionDetailsGroup.classList.toggle("hidden-mode", mode !== "competition");
+        }
+        trainingGroup.classList.toggle("hidden-mode", mode !== "training");
+        competitionCard.classList.toggle("active", mode === "competition");
+        trainingCard.classList.toggle("active", mode === "training");
+
+        if (subjectLabel) {
+          subjectLabel.textContent = mode === "competition" ? "Subject" : "Subject / Theme";
+        }
+        if (categoryLabel) {
+          categoryLabel.textContent = mode === "competition" ? "Category" : "Category / Subcollection";
+        }
+      }
+
+      function addAutocompleteValue(type, value) {
+        normalizeAutocompleteData();
+        const clean = (value || "").trim();
+        if (!clean) return;
+        if (!autocompleteData[type].includes(clean)) {
+          autocompleteData[type].push(clean);
+        }
+      }
+
+      function getScreenshotFilename(screenshot, index = 0) {
+        const baseName = sanitizeFilename(screenshot.name || screenshot.id || `image-${index + 1}`);
+        const extension = screenshot.format || "jpeg";
+        return `${baseName}.${extension}`;
+      }
+
+      function sanitizeFilename(name) {
+        return String(name)
+          .trim()
+          .replace(/[\\/:*?"<>|]+/g, "-")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "") || "image";
+      }
       // Load Video
       function loadVideo() {
         document.getElementById("videoFileInput").click();
@@ -1289,6 +1521,8 @@
             ? "nameInput"
             : type === "categories"
             ? "categoryInput"
+            : type === "collections"
+            ? "collectionInput"
             : "subjectInput";
         document.getElementById(inputId).value = value;
         document
@@ -1311,9 +1545,16 @@
         document.getElementById("cancelEditBtn").style.display = "block";
 
         // Load screenshot data into form
+        const mode = screenshot.mode || "competition";
+        setCaptureMode(mode);
+        document.getElementById("sectionInput").value = screenshot.section || "alternate";
+        document.getElementById("yearInput").value = screenshot.year || "";
+        document.getElementById("roundInput").value = screenshot.round || "";
+        document.getElementById("matchNumberInput").value = screenshot.matchNumber || "";
+        document.getElementById("collectionInput").value = screenshot.collection || "";
         document.getElementById("nameInput").value = screenshot.name;
-        document.getElementById("categoryInput").value = screenshot.category;
-        document.getElementById("subjectInput").value = screenshot.subject;
+        document.getElementById("categoryInput").value = screenshot.category || "";
+        document.getElementById("subjectInput").value = screenshot.subject || "";
         document.getElementById("descriptionInput").value =
           screenshot.description || "";
         document.getElementById("knowledgeInput").value = screenshot.knowledge;
@@ -1363,10 +1604,21 @@
           return;
         }
 
-        const name = document.getElementById("nameInput").value;
-        const category = document.getElementById("categoryInput").value;
-        const subject = document.getElementById("subjectInput").value;
-        const description = document.getElementById("descriptionInput").value;
+        const mode = getCurrentMode();
+        const name = document.getElementById("nameInput").value.trim();
+        const category = document.getElementById("categoryInput").value.trim();
+        const subject = document.getElementById("subjectInput").value.trim();
+        const section = mode === "competition" ? document.getElementById("sectionInput").value : "";
+        const year = mode === "competition" ? document.getElementById("yearInput").value.trim() : "";
+        const round = mode === "competition" ? document.getElementById("roundInput").value.trim() : "";
+        const matchNumber = mode === "competition" ? document.getElementById("matchNumberInput").value.trim() : "";
+        const collection = mode === "training" ? document.getElementById("collectionInput").value.trim() : "";
+        const description = document.getElementById("descriptionInput").value.trim();
+
+        if (mode === "training" && !collection) {
+          showAlert("Please enter a collection name for Training / Collection Mode.", "error");
+          return;
+        }
         const knowledge = parseInt(
           document.getElementById("knowledgeInput").value
         );
@@ -1401,9 +1653,15 @@
 
               screenshots[index] = {
                 id: editingScreenshotId,
+                mode,
                 name,
                 category,
                 subject,
+                section,
+                year,
+                round,
+                matchNumber,
+                collection,
                 description,
                 knowledge,
                 format,
@@ -1432,9 +1690,15 @@
             // Create new screenshot
             const screenshot = {
               id: generateId(),
+              mode,
               name,
               category,
               subject,
+              section,
+              year,
+              round,
+              matchNumber,
+              collection,
               description,
               knowledge,
               format,
@@ -1449,15 +1713,10 @@
           }
 
           // Update autocomplete data
-          if (!autocompleteData.names.includes(name)) {
-            autocompleteData.names.push(name);
-          }
-          if (!autocompleteData.categories.includes(category)) {
-            autocompleteData.categories.push(category);
-          }
-          if (!autocompleteData.subjects.includes(subject)) {
-            autocompleteData.subjects.push(subject);
-          }
+          addAutocompleteValue("names", name);
+          addAutocompleteValue("categories", category);
+          addAutocompleteValue("subjects", subject);
+          addAutocompleteValue("collections", collection);
 
           await saveToIndexedDB();
           updateUI();
@@ -1474,6 +1733,7 @@
         document.getElementById("timestampGroup").style.display = "none";
         document.getElementById("saveBtn").disabled = true;
         currentImageData = null;
+        setCaptureMode("competition");
         selectKnowledge(-1);
       }
 
@@ -1506,14 +1766,15 @@
             if (importMode === "replace") {
               // Replace all
               screenshots = [];
-              autocompleteData = { names: [], categories: [], subjects: [] };
+              autocompleteData = getEmptyAutocompleteData();
             }
 
             // Process imported screenshots
             let imported = 0;
             let updated = 0;
 
-            for (const item of importedData) {
+            for (const rawItem of importedData) {
+              const item = normalizeScreenshot(rawItem);
               const existingIndex = screenshots.findIndex(
                 (s) => s.id === item.id
               );
@@ -1543,6 +1804,12 @@
                 !autocompleteData.subjects.includes(item.subject)
               ) {
                 autocompleteData.subjects.push(item.subject);
+              }
+              if (
+                item.collection &&
+                !autocompleteData.collections.includes(item.collection)
+              ) {
+                autocompleteData.collections.push(item.collection);
               }
             }
 
@@ -1578,12 +1845,18 @@
         document.getElementById("captureCount").textContent =
           screenshots.length;
 
-        const uniqueSubjects = new Set(screenshots.map((s) => s.subject)).size;
-        const uniqueCategories = new Set(screenshots.map((s) => s.category))
+        const uniqueSubjects = new Set(screenshots.map((s) => s.subject).filter(Boolean)).size;
+        const uniqueCategories = new Set(screenshots.map((s) => s.category).filter(Boolean))
           .size;
+        const uniqueSectionCollections = new Set(
+          screenshots
+            .map((s) => (s.mode === "training" ? s.collection : s.section))
+            .filter(Boolean)
+        ).size;
 
         document.getElementById("subjectCount").textContent = uniqueSubjects;
         document.getElementById("categoryCount").textContent = uniqueCategories;
+        document.getElementById("sectionCollectionCount").textContent = uniqueSectionCollections;
       }
 
       function updateGallery() {
@@ -1610,8 +1883,17 @@
                         <div class="gallery-item-name">${escapeHtml(
                           screenshot.name
                         )}</div>
+                        <div class="gallery-item-meta">${screenshot.mode === "training" ? "🎓 Training" : "🏆 Competition"}</div>
+                        ${screenshot.mode === "training" && screenshot.collection
+                          ? `<div class="gallery-item-meta">Collection: ${escapeHtml(screenshot.collection)}</div>`
+                          : screenshot.section
+                          ? `<div class="gallery-item-meta">Section: ${escapeHtml(screenshot.section)}</div>`
+                          : ""}
+                        ${screenshot.mode !== "training" && (screenshot.year || screenshot.round || screenshot.matchNumber)
+                          ? `<div class="gallery-item-meta">${escapeHtml(formatCompetitionMeta(screenshot))}</div>`
+                          : ""}
                         <div class="gallery-item-meta">${escapeHtml(
-                          screenshot.category
+                          screenshot.category || ""
                         )}</div>
                         <div class="gallery-item-meta">${escapeHtml(
                           screenshot.subject
@@ -1647,6 +1929,7 @@
         document.getElementById("exportCSVBtn").disabled = !hasData;
         document.getElementById("exportJSONBtn").disabled = !hasData;
         document.getElementById("exportAppJSONBtn").disabled = !hasData;
+        document.getElementById("exportGitHubMediaSourceBtn").disabled = !hasData;
         document.getElementById("exportZipBtn").disabled = !hasData;
       }
 
@@ -1656,11 +1939,27 @@
         document.getElementById("modalImage").src = screenshot.imageData;
         document.getElementById("modalInfo").innerHTML = `
                 <p><strong>Name:</strong> ${escapeHtml(screenshot.name)}</p>
+                <p><strong>Mode:</strong> ${screenshot.mode === "training" ? "Training / Collection" : "Competition"}</p>
+                ${
+                  screenshot.section
+                    ? `<p><strong>Section:</strong> ${escapeHtml(screenshot.section)}</p>`
+                    : ""
+                }
+                ${
+                  screenshot.collection
+                    ? `<p><strong>Collection:</strong> ${escapeHtml(screenshot.collection)}</p>`
+                    : ""
+                }
+                ${
+                  screenshot.mode !== "training" && (screenshot.year || screenshot.round || screenshot.matchNumber)
+                    ? `<p><strong>Competition:</strong> ${escapeHtml(formatCompetitionMeta(screenshot))}</p>`
+                    : ""
+                }
                 <p><strong>Category:</strong> ${escapeHtml(
-                  screenshot.category
+                  screenshot.category || ""
                 )}</p>
                 <p><strong>Subject:</strong> ${escapeHtml(
-                  screenshot.subject
+                  screenshot.subject || ""
                 )}</p>
                 ${
                   screenshot.description
@@ -1705,7 +2004,7 @@
           )
         ) {
           screenshots = [];
-          autocompleteData = { names: [], categories: [], subjects: [] };
+          autocompleteData = getEmptyAutocompleteData();
 
           // Clear IndexedDB
           if (db) {
@@ -1727,6 +2026,12 @@
         const headers = [
           "ID",
           "Name",
+          "Mode",
+          "Section",
+          "Year",
+          "Round",
+          "Match #",
+          "Collection",
           "Category",
           "Subject",
           "Description",
@@ -1739,6 +2044,12 @@
         const rows = screenshots.map((s) => [
           s.id,
           s.name,
+          s.mode || "competition",
+          s.section || "",
+          s.year || "",
+          s.round || "",
+          s.matchNumber || "",
+          s.collection || "",
           s.category,
           s.subject,
           s.description,
@@ -1775,15 +2086,61 @@
           name: s.name,
           description: s.description,
           knowledge: s.knowledge,
+          mode: s.mode || "competition",
+          section: s.section || "",
+          year: s.year || "",
+          round: s.round || "",
+          matchNumber: s.matchNumber || "",
+          collection: s.collection || "",
+          category: s.category || "",
+          subject: s.subject || "",
           src: s.imageData,
           size: s.size,
         }));
 
         const json = JSON.stringify(appData, null, 2);
-        downloadFile(json, "quiz-screenshots-app.json", "application/json");
+        downloadFile(json, "quiz-screenshots-vizhub.json", "application/json");
         showAlert("App JSON exported successfully!", "success");
       }
 
+
+
+      // Export GitHub Media Studio Source JSON
+      function exportGitHubMediaSourceJSON() {
+        const sourceData = screenshots.map((s, index) => {
+          const filename = getScreenshotFilename(s, index);
+          const mediaId = sanitizeFilename(`${s.mode || "competition"}-${s.collection || s.section || "general"}-${s.subject || s.category || s.name || s.id}`).toLowerCase();
+
+          return {
+            id: s.id,
+            mediaId,
+            type: "image",
+            name: s.name,
+            description: s.description || "",
+            mode: s.mode || "competition",
+            section: s.section || "",
+            year: s.year || "",
+            round: s.round || "",
+            matchNumber: s.matchNumber || "",
+            collection: s.collection || "",
+            subject: s.subject || "",
+            category: s.category || "",
+            knowledge: s.knowledge,
+            filename,
+            relativePath: `images/${filename}`,
+            url: `images/${filename}`,
+            thumbUrl: "",
+            sourceDataUrl: s.imageData,
+            size: s.size,
+            capturedAt: s.capturedAt,
+            videoTimestamp: s.timestamp || "",
+          };
+        });
+
+        const json = JSON.stringify(sourceData, null, 2);
+        downloadFile(json, "github-media-studio-source.json", "application/json");
+        showAlert("GitHub Media Studio source JSON exported successfully!", "success");
+      }
       // Export All as ZIP
       async function exportAllAsZip() {
         const zip = new JSZip();
@@ -1792,6 +2149,12 @@
         const headers = [
           "ID",
           "Name",
+          "Mode",
+          "Section",
+          "Year",
+          "Round",
+          "Match #",
+          "Collection",
           "Category",
           "Subject",
           "Description",
@@ -1804,6 +2167,12 @@
         const rows = screenshots.map((s) => [
           s.id,
           s.name,
+          s.mode || "competition",
+          s.section || "",
+          s.year || "",
+          s.round || "",
+          s.matchNumber || "",
+          s.collection || "",
           s.category,
           s.subject,
           s.description,
@@ -1831,16 +2200,61 @@
           name: s.name,
           description: s.description,
           knowledge: s.knowledge,
+          mode: s.mode || "competition",
+          section: s.section || "",
+          year: s.year || "",
+          round: s.round || "",
+          matchNumber: s.matchNumber || "",
+          collection: s.collection || "",
+          category: s.category || "",
+          subject: s.subject || "",
           src: s.imageData,
           size: s.size,
         }));
         zip.file("quiz-screenshots-app.json", JSON.stringify(appData, null, 2));
 
+        const githubSourceData = screenshots.map((s, index) => {
+          const filename = getScreenshotFilename(s, index);
+          const mediaId = sanitizeFilename(`${s.mode || "competition"}-${s.collection || s.section || "general"}-${s.subject || s.category || s.name || s.id}`).toLowerCase();
+          return {
+            id: s.id,
+            mediaId,
+            type: "image",
+            name: s.name,
+            description: s.description || "",
+            mode: s.mode || "competition",
+            section: s.section || "",
+            year: s.year || "",
+            round: s.round || "",
+            matchNumber: s.matchNumber || "",
+            collection: s.collection || "",
+            subject: s.subject || "",
+            category: s.category || "",
+            knowledge: s.knowledge,
+            filename,
+            relativePath: `images/${filename}`,
+            url: `images/${filename}`,
+            thumbUrl: "",
+            sourceDataUrl: s.imageData,
+            size: s.size,
+            capturedAt: s.capturedAt,
+            videoTimestamp: s.timestamp || "",
+          };
+        });
+        zip.file("github-media-studio-source.json", JSON.stringify(githubSourceData, null, 2));
+
         // Add images
         const imagesFolder = zip.folder("images");
+        const usedNames = new Set();
         screenshots.forEach((s, index) => {
           const base64Data = s.imageData.split(",")[1];
-          imagesFolder.file(`${s.name}.${s.format}`, base64Data, {
+          let filename = getScreenshotFilename(s, index);
+          if (usedNames.has(filename)) {
+            const extension = s.format || "jpeg";
+            filename = `${sanitizeFilename(s.name || s.id)}-${index + 1}.${extension}`;
+          }
+          usedNames.add(filename);
+          imagesFolder.file(filename, base64Data, {
             base64: true,
           });
         });
@@ -1871,6 +2285,14 @@
         if (bytes < 1024) return bytes + " B";
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
         return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      }
+
+      function formatCompetitionMeta(screenshot) {
+        const parts = [];
+        if (screenshot.year) parts.push(`Year: ${screenshot.year}`);
+        if (screenshot.round) parts.push(`Round: ${screenshot.round}`);
+        if (screenshot.matchNumber) parts.push(`Match #: ${screenshot.matchNumber}`);
+        return parts.join(" | ");
       }
 
       function getKnowledgeLabel(value) {
