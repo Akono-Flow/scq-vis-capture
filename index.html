@@ -515,6 +515,41 @@
         background: #f8fafc;
       }
 
+      .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 15px;
+      }
+
+      .settings-panel {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 12px;
+      }
+
+      .settings-panel h4 {
+        color: #1e293b;
+        margin-bottom: 12px;
+      }
+
+      .settings-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .settings-note {
+        color: #64748b;
+        font-size: 0.9em;
+        line-height: 1.45;
+        margin-bottom: 12px;
+      }
+
+
       canvas {
         display: none;
       }
@@ -938,6 +973,114 @@
         <!-- Right Column: Gallery & Export -->
         <div>
           <div class="section">
+            <h2 class="section-title">⚙️ Metadata Defaults</h2>
+            <p class="settings-note">
+              Configure repeated values once. After each save, the form resets to these defaults instead of going completely blank.
+            </p>
+
+            <div class="form-group">
+              <label class="form-label">Default Mode After Save</label>
+              <select class="form-select" id="defaultModeInput">
+                <option value="competition">Competition Mode</option>
+                <option value="training">Training / Collection Mode</option>
+              </select>
+            </div>
+
+            <div class="settings-panel">
+              <h4>🏆 Competition Defaults</h4>
+              <div class="settings-grid">
+                <div class="form-group">
+                  <label class="form-label">Match Section</label>
+                  <select class="form-select" id="defaultCompetitionSection">
+                    <option value="alternate">Alternate</option>
+                    <option value="buzzer">Buzzer</option>
+                    <option value="minute">Minute</option>
+                    <option value="other">Other / Unspecified</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Year</label>
+                  <input type="text" class="form-input" id="defaultCompetitionYear" placeholder="e.g. 2024" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Round</label>
+                  <input type="text" class="form-input" id="defaultCompetitionRound" placeholder="e.g. R02" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Match #</label>
+                  <input type="text" class="form-input" id="defaultCompetitionMatchNumber" placeholder="e.g. 15" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Category</label>
+                  <input type="text" class="form-input" id="defaultCompetitionCategory" placeholder="e.g. Visual" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Subject</label>
+                  <input type="text" class="form-input" id="defaultCompetitionSubject" placeholder="e.g. Sports" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Knowledge Level</label>
+                  <select class="form-select" id="defaultCompetitionKnowledge">
+                    <option value="-1">Unknown</option>
+                    <option value="0">Don't Know</option>
+                    <option value="1">Know</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Image Format</label>
+                  <select class="form-select" id="defaultCompetitionFormat">
+                    <option value="jpeg">JPEG</option>
+                    <option value="png">PNG</option>
+                    <option value="webp">WEBP</option>
+                    <option value="gif">GIF</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-panel">
+              <h4>🎓 Training / Collection Defaults</h4>
+              <div class="settings-grid">
+                <div class="form-group">
+                  <label class="form-label">Collection</label>
+                  <input type="text" class="form-input" id="defaultTrainingCollection" placeholder="e.g. Footballers" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Category / Subcollection</label>
+                  <input type="text" class="form-input" id="defaultTrainingCategory" placeholder="e.g. Goalkeepers" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Subject / Theme</label>
+                  <input type="text" class="form-input" id="defaultTrainingSubject" placeholder="e.g. Sports" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Knowledge Level</label>
+                  <select class="form-select" id="defaultTrainingKnowledge">
+                    <option value="-1">Unknown</option>
+                    <option value="0">Don't Know</option>
+                    <option value="1">Know</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Image Format</label>
+                  <select class="form-select" id="defaultTrainingFormat">
+                    <option value="jpeg">JPEG</option>
+                    <option value="png">PNG</option>
+                    <option value="webp">WEBP</option>
+                    <option value="gif">GIF</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-actions">
+              <button class="btn btn-secondary" onclick="saveDefaultSettingsFromUI()">💾 Save Defaults</button>
+              <button class="btn btn-outline" onclick="applyDefaultSettings()">↩️ Apply Defaults Now</button>
+              <button class="btn btn-danger" onclick="clearDefaultSettings()">🧹 Clear Defaults</button>
+            </div>
+          </div>
+
+          <div class="section">
             <h2 class="section-title">📚 Captured Screenshots</h2>
 
             <div class="stats">
@@ -1087,6 +1230,7 @@
         subjects: [],
         collections: [],
       };
+      let defaultSettings = getEmptyDefaultSettings();
       let db = null;
       let editMode = false;
       let editingScreenshotId = null;
@@ -1146,8 +1290,9 @@
             await screenshotStore.put(screenshot);
           }
 
-          // Save autocomplete data
+          // Save autocomplete data and user defaults
           await autocompleteStore.put({ key: "data", value: autocompleteData });
+          await autocompleteStore.put({ key: "defaults", value: defaultSettings });
 
           return new Promise((resolve, reject) => {
             transaction.oncomplete = () => resolve();
@@ -1176,6 +1321,7 @@
           // Load screenshots
           const screenshotsRequest = screenshotStore.getAll();
           const autocompleteRequest = autocompleteStore.get("data");
+          const defaultsRequest = autocompleteStore.get("defaults");
 
           return new Promise((resolve, reject) => {
             transaction.oncomplete = () => {
@@ -1185,6 +1331,12 @@
                 autocompleteData = autocompleteResult.value;
               } else {
                 autocompleteData = getEmptyAutocompleteData();
+              }
+              const defaultsResult = defaultsRequest.result;
+              if (defaultsResult && defaultsResult.value) {
+                defaultSettings = mergeDefaultSettings(defaultsResult.value);
+              } else {
+                defaultSettings = getEmptyDefaultSettings();
               }
               normalizeAutocompleteData();
               console.log(
@@ -1208,7 +1360,8 @@
           await loadFromIndexedDB();
           screenshots = screenshots.map(normalizeScreenshot);
           normalizeAutocompleteData();
-          handleModeChange();
+          populateDefaultSettingsUI();
+          applyDefaultSettings();
           updateUI();
           setupEventListeners();
         } catch (error) {
@@ -1275,6 +1428,134 @@
       function normalizeAutocompleteData() {
         const empty = getEmptyAutocompleteData();
         autocompleteData = { ...empty, ...(autocompleteData || {}) };
+      }
+
+      function getEmptyDefaultSettings() {
+        return {
+          activeMode: "competition",
+          competition: {
+            section: "alternate",
+            year: "",
+            round: "",
+            matchNumber: "",
+            category: "",
+            subject: "",
+            knowledge: -1,
+            format: "jpeg",
+          },
+          training: {
+            collection: "",
+            category: "",
+            subject: "",
+            knowledge: -1,
+            format: "jpeg",
+          },
+        };
+      }
+
+      function mergeDefaultSettings(settings) {
+        const empty = getEmptyDefaultSettings();
+        return {
+          activeMode: settings?.activeMode || empty.activeMode,
+          competition: { ...empty.competition, ...(settings?.competition || {}) },
+          training: { ...empty.training, ...(settings?.training || {}) },
+        };
+      }
+
+      function populateDefaultSettingsUI() {
+        defaultSettings = mergeDefaultSettings(defaultSettings);
+        document.getElementById("defaultModeInput").value = defaultSettings.activeMode;
+
+        document.getElementById("defaultCompetitionSection").value = defaultSettings.competition.section;
+        document.getElementById("defaultCompetitionYear").value = defaultSettings.competition.year;
+        document.getElementById("defaultCompetitionRound").value = defaultSettings.competition.round;
+        document.getElementById("defaultCompetitionMatchNumber").value = defaultSettings.competition.matchNumber;
+        document.getElementById("defaultCompetitionCategory").value = defaultSettings.competition.category;
+        document.getElementById("defaultCompetitionSubject").value = defaultSettings.competition.subject;
+        document.getElementById("defaultCompetitionKnowledge").value = String(defaultSettings.competition.knowledge);
+        document.getElementById("defaultCompetitionFormat").value = defaultSettings.competition.format;
+
+        document.getElementById("defaultTrainingCollection").value = defaultSettings.training.collection;
+        document.getElementById("defaultTrainingCategory").value = defaultSettings.training.category;
+        document.getElementById("defaultTrainingSubject").value = defaultSettings.training.subject;
+        document.getElementById("defaultTrainingKnowledge").value = String(defaultSettings.training.knowledge);
+        document.getElementById("defaultTrainingFormat").value = defaultSettings.training.format;
+      }
+
+      async function saveDefaultSettingsFromUI() {
+        defaultSettings = {
+          activeMode: document.getElementById("defaultModeInput").value,
+          competition: {
+            section: document.getElementById("defaultCompetitionSection").value,
+            year: document.getElementById("defaultCompetitionYear").value.trim(),
+            round: document.getElementById("defaultCompetitionRound").value.trim(),
+            matchNumber: document.getElementById("defaultCompetitionMatchNumber").value.trim(),
+            category: document.getElementById("defaultCompetitionCategory").value.trim(),
+            subject: document.getElementById("defaultCompetitionSubject").value.trim(),
+            knowledge: parseInt(document.getElementById("defaultCompetitionKnowledge").value, 10),
+            format: document.getElementById("defaultCompetitionFormat").value,
+          },
+          training: {
+            collection: document.getElementById("defaultTrainingCollection").value.trim(),
+            category: document.getElementById("defaultTrainingCategory").value.trim(),
+            subject: document.getElementById("defaultTrainingSubject").value.trim(),
+            knowledge: parseInt(document.getElementById("defaultTrainingKnowledge").value, 10),
+            format: document.getElementById("defaultTrainingFormat").value,
+          },
+        };
+
+        addAutocompleteValue("categories", defaultSettings.competition.category);
+        addAutocompleteValue("subjects", defaultSettings.competition.subject);
+        addAutocompleteValue("collections", defaultSettings.training.collection);
+        addAutocompleteValue("categories", defaultSettings.training.category);
+        addAutocompleteValue("subjects", defaultSettings.training.subject);
+
+        await saveToIndexedDB();
+        applyDefaultSettings();
+        showAlert("Default metadata settings saved.", "success");
+      }
+
+      function applyDefaultSettings() {
+        defaultSettings = mergeDefaultSettings(defaultSettings);
+        const mode = defaultSettings.activeMode || "competition";
+        setCaptureMode(mode);
+
+        if (mode === "competition") {
+          const d = defaultSettings.competition;
+          document.getElementById("sectionInput").value = d.section || "alternate";
+          document.getElementById("yearInput").value = d.year || "";
+          document.getElementById("roundInput").value = d.round || "";
+          document.getElementById("matchNumberInput").value = d.matchNumber || "";
+          document.getElementById("collectionInput").value = "";
+          document.getElementById("categoryInput").value = d.category || "";
+          document.getElementById("subjectInput").value = d.subject || "";
+          document.getElementById("formatInput").value = d.format || "jpeg";
+          selectKnowledge(Number.isInteger(d.knowledge) ? d.knowledge : -1);
+        } else {
+          const d = defaultSettings.training;
+          document.getElementById("sectionInput").value = "alternate";
+          document.getElementById("yearInput").value = "";
+          document.getElementById("roundInput").value = "";
+          document.getElementById("matchNumberInput").value = "";
+          document.getElementById("collectionInput").value = d.collection || "";
+          document.getElementById("categoryInput").value = d.category || "";
+          document.getElementById("subjectInput").value = d.subject || "";
+          document.getElementById("formatInput").value = d.format || "jpeg";
+          selectKnowledge(Number.isInteger(d.knowledge) ? d.knowledge : -1);
+        }
+
+        document.getElementById("nameInput").value = "";
+        document.getElementById("descriptionInput").value = "";
+        handleModeChange();
+      }
+
+      async function clearDefaultSettings() {
+        if (!confirm("Clear all saved default metadata settings?")) return;
+        defaultSettings = getEmptyDefaultSettings();
+        populateDefaultSettingsUI();
+        await saveToIndexedDB();
+        applyDefaultSettings();
+        showAlert("Default metadata settings cleared.", "info");
       }
 
       function normalizeScreenshot(item) {
@@ -1728,13 +2009,12 @@
 
       // Reset Form
       function resetForm() {
-        document.getElementById("metadataForm").reset();
         document.getElementById("previewContainer").style.display = "none";
         document.getElementById("timestampGroup").style.display = "none";
+        document.getElementById("timestampDisplay").textContent = "";
         document.getElementById("saveBtn").disabled = true;
         currentImageData = null;
-        setCaptureMode("competition");
-        selectKnowledge(-1);
+        applyDefaultSettings();
       }
 
       // Import JSON
