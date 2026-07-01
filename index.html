@@ -1515,9 +1515,9 @@
         showAlert("Default metadata settings saved.", "success");
       }
 
-      function applyDefaultSettings() {
+      function applyDefaultSettings(modeOverride = null) {
         defaultSettings = mergeDefaultSettings(defaultSettings);
-        const mode = defaultSettings.activeMode || "competition";
+        const mode = modeOverride || defaultSettings.activeMode || "competition";
         setCaptureMode(mode);
 
         if (mode === "competition") {
@@ -2001,20 +2001,20 @@
 
           await saveToIndexedDB();
           updateUI();
-          resetForm();
+          resetForm(mode);
         };
 
         img.src = currentImageData;
       }
 
       // Reset Form
-      function resetForm() {
+      function resetForm(modeOverride = null) {
         document.getElementById("previewContainer").style.display = "none";
         document.getElementById("timestampGroup").style.display = "none";
         document.getElementById("timestampDisplay").textContent = "";
         document.getElementById("saveBtn").disabled = true;
         currentImageData = null;
-        applyDefaultSettings();
+        applyDefaultSettings(modeOverride);
       }
 
       // Import JSON
