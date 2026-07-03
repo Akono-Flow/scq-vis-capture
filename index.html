@@ -979,12 +979,30 @@
 
               <div class="form-group">
                 <label class="form-label">Image Format</label>
-                <select class="form-select" id="formatInput">
+                <select class="form-select" id="formatInput" onchange="toggleQualityVisibility('formatInput', 'qualityGroup')">
                   <option value="jpeg" selected>JPEG (Smaller Size)</option>
                   <option value="png">PNG (Best Quality)</option>
                   <option value="webp">WEBP (Modern Format)</option>
                   <option value="gif">GIF (Animation Support)</option>
                 </select>
+              </div>
+
+              <div class="form-group" id="qualityGroup" style="display: none">
+                <label class="form-label">
+                  Quality: <span id="qualityValueDisplay">80</span>%
+                </label>
+                <input
+                  type="range"
+                  id="qualityInput"
+                  min="1"
+                  max="100"
+                  value="80"
+                  style="width: 100%"
+                  oninput="document.getElementById('qualityValueDisplay').textContent = this.value"
+                />
+                <small style="color: #6b7280; display: block; margin-top: 4px;">
+                  Lower = smaller file, more compression artifacts. 70-80 is usually a strong balance for WEBP.
+                </small>
               </div>
 
               <div class="form-group" id="timestampGroup" style="display: none">
@@ -1206,12 +1224,26 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Image Format</label>
-                <select class="form-select" id="settingsCompFormat">
+                <select class="form-select" id="settingsCompFormat" onchange="toggleQualityVisibility('settingsCompFormat', 'settingsCompQualityGroup')">
                   <option value="jpeg">JPEG (Smaller Size)</option>
                   <option value="png">PNG (Best Quality)</option>
                   <option value="webp">WEBP (Modern Format)</option>
                   <option value="gif">GIF (Animation Support)</option>
                 </select>
+              </div>
+              <div class="form-group" id="settingsCompQualityGroup" style="display: none">
+                <label class="form-label">
+                  Quality: <span id="settingsCompQualityDisplay">80</span>%
+                </label>
+                <input
+                  type="range"
+                  id="settingsCompQuality"
+                  min="1"
+                  max="100"
+                  value="80"
+                  style="width: 100%"
+                  oninput="document.getElementById('settingsCompQualityDisplay').textContent = this.value"
+                />
               </div>
             </div>
             <div class="settings-actions">
@@ -1246,12 +1278,26 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Image Format</label>
-                <select class="form-select" id="settingsTrainFormat">
+                <select class="form-select" id="settingsTrainFormat" onchange="toggleQualityVisibility('settingsTrainFormat', 'settingsTrainQualityGroup')">
                   <option value="jpeg">JPEG (Smaller Size)</option>
                   <option value="png">PNG (Best Quality)</option>
                   <option value="webp">WEBP (Modern Format)</option>
                   <option value="gif">GIF (Animation Support)</option>
                 </select>
+              </div>
+              <div class="form-group" id="settingsTrainQualityGroup" style="display: none">
+                <label class="form-label">
+                  Quality: <span id="settingsTrainQualityDisplay">80</span>%
+                </label>
+                <input
+                  type="range"
+                  id="settingsTrainQuality"
+                  min="1"
+                  max="100"
+                  value="80"
+                  style="width: 100%"
+                  oninput="document.getElementById('settingsTrainQualityDisplay').textContent = this.value"
+                />
               </div>
             </div>
             <div class="settings-actions">
@@ -1300,6 +1346,7 @@
           subject: "",
           knowledge: -1,
           format: "jpeg",
+          quality: 80,
         },
         trainingDefaults: {
           collection: "",
@@ -1307,6 +1354,7 @@
           subject: "",
           knowledge: -1,
           format: "jpeg",
+          quality: 80,
         },
         lastMode: "competition",
       };
@@ -1578,6 +1626,15 @@
         return selected ? selected.value : "competition";
       }
 
+      // Show the quality slider only for lossy formats (jpeg/webp); png/gif don't use it.
+      function toggleQualityVisibility(formatSelectId, qualityGroupId) {
+        const formatEl = document.getElementById(formatSelectId);
+        const groupEl = document.getElementById(qualityGroupId);
+        if (!formatEl || !groupEl) return;
+        const isLossy = formatEl.value === "jpeg" || formatEl.value === "webp";
+        groupEl.style.display = isLossy ? "block" : "none";
+      }
+
       function setCaptureMode(mode) {
         const input = document.querySelector(`input[name="captureMode"][value="${mode}"]`);
         if (input) input.checked = true;
@@ -1642,6 +1699,10 @@
         selectKnowledge(knowledge);
 
         document.getElementById("formatInput").value = defaults.format || "jpeg";
+        const quality = Number.isInteger(defaults.quality) ? defaults.quality : 80;
+        document.getElementById("qualityInput").value = quality;
+        document.getElementById("qualityValueDisplay").textContent = quality;
+        toggleQualityVisibility("formatInput", "qualityGroup");
       }
 
       // Manually triggered from the "Apply Defaults" button, visible only while
@@ -1719,6 +1780,10 @@
         document.getElementById("settingsCompSubject").value = c.subject || "";
         document.getElementById("settingsCompKnowledge").value = Number.isInteger(c.knowledge) ? c.knowledge : -1;
         document.getElementById("settingsCompFormat").value = c.format || "jpeg";
+        const cQuality = Number.isInteger(c.quality) ? c.quality : 80;
+        document.getElementById("settingsCompQuality").value = cQuality;
+        document.getElementById("settingsCompQualityDisplay").textContent = cQuality;
+        toggleQualityVisibility("settingsCompFormat", "settingsCompQualityGroup");
 
         const t = appSettings.trainingDefaults;
         document.getElementById("settingsTrainCollection").value = t.collection || "";
@@ -1726,6 +1791,10 @@
         document.getElementById("settingsTrainSubject").value = t.subject || "";
         document.getElementById("settingsTrainKnowledge").value = Number.isInteger(t.knowledge) ? t.knowledge : -1;
         document.getElementById("settingsTrainFormat").value = t.format || "jpeg";
+        const tQuality = Number.isInteger(t.quality) ? t.quality : 80;
+        document.getElementById("settingsTrainQuality").value = tQuality;
+        document.getElementById("settingsTrainQualityDisplay").textContent = tQuality;
+        toggleQualityVisibility("settingsTrainFormat", "settingsTrainQualityGroup");
 
         updateDefaultsSummary();
       }
@@ -1765,6 +1834,7 @@
             subject: document.getElementById("settingsCompSubject").value.trim(),
             knowledge: parseInt(document.getElementById("settingsCompKnowledge").value, 10),
             format: document.getElementById("settingsCompFormat").value,
+            quality: parseInt(document.getElementById("settingsCompQuality").value, 10),
           };
         } else {
           appSettings.trainingDefaults = {
@@ -1773,6 +1843,7 @@
             subject: document.getElementById("settingsTrainSubject").value.trim(),
             knowledge: parseInt(document.getElementById("settingsTrainKnowledge").value, 10),
             format: document.getElementById("settingsTrainFormat").value,
+            quality: parseInt(document.getElementById("settingsTrainQuality").value, 10),
           };
         }
 
@@ -1803,6 +1874,7 @@
             subject: "",
             knowledge: -1,
             format: "jpeg",
+            quality: 80,
           };
         } else {
           appSettings.trainingDefaults = {
@@ -1811,6 +1883,7 @@
             subject: "",
             knowledge: -1,
             format: "jpeg",
+            quality: 80,
           };
         }
 
@@ -2054,6 +2127,10 @@
         document.getElementById("knowledgeInput").value = screenshot.knowledge;
         selectKnowledge(screenshot.knowledge);
         document.getElementById("formatInput").value = screenshot.format;
+        const editQuality = Number.isInteger(screenshot.quality) ? screenshot.quality : 80;
+        document.getElementById("qualityInput").value = editQuality;
+        document.getElementById("qualityValueDisplay").textContent = editQuality;
+        toggleQualityVisibility("formatInput", "qualityGroup");
 
         if (screenshot.timestamp) {
           document.getElementById("timestampDisplay").textContent =
@@ -2118,6 +2195,10 @@
           document.getElementById("knowledgeInput").value
         );
         const format = document.getElementById("formatInput").value;
+        const quality =
+          format === "jpeg" || format === "webp"
+            ? parseInt(document.getElementById("qualityInput").value, 10) / 100
+            : null;
         const timestamp =
           document.getElementById("timestampDisplay").textContent;
 
@@ -2136,7 +2217,13 @@
           else if (format === "webp") mimeType = "image/webp";
           else if (format === "gif") mimeType = "image/gif";
 
-          const convertedImageData = canvas.toDataURL(mimeType);
+          // Pass the quality argument only for lossy formats — canvas.toDataURL
+          // ignores it for png/gif anyway, but keeping it explicit avoids relying
+          // on the browser's default (which is ~0.92 in Chrome, i.e. large files).
+          const convertedImageData =
+            quality !== null
+              ? canvas.toDataURL(mimeType, quality)
+              : canvas.toDataURL(mimeType);
 
           if (editMode) {
             // Update existing screenshot
@@ -2160,6 +2247,7 @@
                 description,
                 knowledge,
                 format,
+                quality: quality !== null ? Math.round(quality * 100) : null,
                 timestamp,
                 imageData: convertedImageData,
                 capturedAt: originalCapturedAt, // Preserve original timestamp
@@ -2198,6 +2286,7 @@
               description,
               knowledge,
               format,
+              quality: quality !== null ? Math.round(quality * 100) : null,
               timestamp,
               imageData: convertedImageData,
               capturedAt: new Date().toISOString(),
